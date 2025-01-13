@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Certificate Chain Uploader</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      line-height: 1.6;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      margin-top: 10px;
+      font-family: monospace;
+    }
+    button {
+      display: block;
+      margin-top: 20px;
+    }
+    .output {
+      margin-top: 20px;
+    }
+    .response {
+      margin-top: 20px;
+      border: 1px solid #ddd;
+      padding: 10px;
+      background: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+  <h1>Certificate Chain Uploader</h1>
+  <p>Paste your leaf and intermediate certificates below. This tool will format them into the required JSON and send them to the Certificate Transparency log.</p>
+
+  <label for="leafCert">Leaf Certificate:</label>
+  <textarea id="leafCert" placeholder="Paste the leaf certificate here..."></textarea>
+
+  <label for="intermediateCert">Intermediate Certificate:</label>
+  <textarea id="intermediateCert" placeholder="Paste the intermediate certificate here..."></textarea>
+
+  <button id="processButton">Process and Upload Certificates</button>
+
+  <div class="output">
+    <h2>Generated JSON</h2>
+    <textarea id="output" readonly placeholder="The JSON will appear here..."></textarea>
+  </div>
+
+  <div class="response">
+    <h2>Server Response</h2>
+    <pre id="serverResponse">Awaiting response...</pre>
+  </div>
+
+  <script>
+    document.getElementById("processButton").addEventListener("click", async () => {
+      const leafCert = document.getElementById("leafCert").value.trim();
+      const intermediateCert = document.getElementById("intermediateCert").value.trim();
+
+      if (!leafCert || !intermediateCert) {
+        alert("Please paste both the leaf and intermediate certificates.");
+        return;
+      }
+
+      const cleanCert = (content) =>
+        content
+          .replace(/-----BEGIN CERTIFICATE-----/g, "")
+          .replace(/-----END CERTIFICATE-----/g, "")
+          .replace(/\r?\n|\r/g, "");
+
+      const cleanedLeaf = cleanCert(leafCert);
+      const cleanedIntermediate = cleanCert(intermediateCert);
+
+      // Create JSON in the required format
+      const jsonData = {
+        chain: [cleanedLeaf, cleanedIntermediate]
+      };
+
+      // Display JSON in the output textarea
+      document.getElementById("output").textContent = JSON.stringify(jsonData, null, 2);
+
+      // Send the JSON to the CT log
+      try {
+        const response = await fetch("https://dodo.ct.comodo.com/ct/v1/add-chain", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(jsonData)
+        });
+
+        const result = await response.json();
+        document.getElementById("serverResponse").textContent = JSON.stringify(result, null, 2);
+      } catch (error) {
+        document.getElementById("serverResponse").textContent = `Error: ${error.message}`;
+      }
+    });
+  </script>
+</body>
+</html>
