@@ -5,52 +5,148 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Certificate Chain Uploader</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      line-height: 1.6;
+    /* General Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #f4f4f9;
+      color: #333;
+      line-height: 1.6;
+      margin: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      max-width: 1200px;
+      width: 100%;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #444;
+    }
+
+    p {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 10px;
+    }
+
     textarea {
       width: 100%;
-      height: 150px;
-      margin-top: 10px;
-      font-family: monospace;
+      height: 120px;
+      margin-bottom: 20px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      resize: vertical;
     }
+
     button {
       display: block;
+      width: 100%;
+      background: #007BFF;
+      color: #fff;
+      padding: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    .output, .response {
       margin-top: 20px;
     }
-    .output {
-      margin-top: 20px;
-    }
-    .response {
-      margin-top: 20px;
+
+    .output textarea, .response pre {
+      background: #f9f9f9;
       border: 1px solid #ddd;
       padding: 10px;
-      background: #f9f9f9;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+    }
+
+    .response {
+      background: #f7f7f7;
+      border-radius: 4px;
+      padding: 15px;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .response h2 {
+      margin-bottom: 10px;
+      color: #555;
+    }
+
+    .center {
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .center a {
+      text-decoration: none;
+      color: #007BFF;
+    }
+
+    .center a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <h1>Certificate Chain Uploader</h1>
-  <p>Paste your leaf and intermediate certificates below. This tool will format them into the required JSON and send them to the Certificate Transparency log.</p>
+  <div class="container">
+    <h1>Certificate Chain Uploader</h1>
+    <p>Format your certificates into the required JSON structure and upload them to the Dodo Certificate Transparency log.</p>
 
-  <label for="leafCert">Leaf Certificate:</label>
-  <textarea id="leafCert" placeholder="Paste the leaf certificate here..."></textarea>
+    <label for="leafCert">Leaf Certificate:</label>
+    <textarea id="leafCert" placeholder="Paste your leaf certificate here..."></textarea>
 
-  <label for="intermediateCert">Intermediate Certificate:</label>
-  <textarea id="intermediateCert" placeholder="Paste the intermediate certificate here..."></textarea>
+    <label for="intermediateCert">Intermediate Certificate:</label>
+    <textarea id="intermediateCert" placeholder="Paste your intermediate certificate here..."></textarea>
 
-  <button id="processButton">Process and Upload Certificates</button>
+    <button id="processButton">Process and Upload</button>
 
-  <div class="output">
-    <h2>Generated JSON</h2>
-    <textarea id="output" readonly placeholder="The JSON will appear here..."></textarea>
-  </div>
+    <div class="output">
+      <h2>Generated JSON</h2>
+      <textarea id="output" readonly placeholder="The formatted JSON will appear here..."></textarea>
+    </div>
 
-  <div class="response">
-    <h2>Server Response</h2>
-    <pre id="serverResponse">Awaiting response...</pre>
+    <div class="response">
+      <h2>Server Response</h2>
+      <pre id="serverResponse">Awaiting response...</pre>
+    </div>
+
+    <div class="center">
+      <p>
+        Need help? Visit <a href="https://certificate.transparency.dev/" target="_blank">Certificate Transparency</a> or contact me.
+      </p>
+    </div>
   </div>
 
   <script>
@@ -90,8 +186,14 @@
           body: JSON.stringify(jsonData)
         });
 
-        const result = await response.json();
-        document.getElementById("serverResponse").textContent = JSON.stringify(result, null, 2);
+        if (!response.ok) {
+          // If response status is not 200, show the HTTP status code
+          document.getElementById("serverResponse").textContent = `Error: HTTP ${response.status}`;
+        } else {
+          // If response status is 200, parse and display JSON response
+          const result = await response.json();
+          document.getElementById("serverResponse").textContent = JSON.stringify(result, null, 2);
+        }
       } catch (error) {
         document.getElementById("serverResponse").textContent = `Error: ${error.message}`;
       }
