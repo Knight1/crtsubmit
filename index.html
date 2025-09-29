@@ -122,7 +122,7 @@
 <body>
   <div class="container">
     <h1>Certificate Chain Uploader</h1>
-    <p>Format your certificates into the required JSON structure and upload them to the Dodo Certificate Transparency log.</p>
+    <p>Format your certificates into the required JSON structure and upload them to the Dumbo Certificate Transparency log.</p>
 
     <label for="leafCert">Leaf Certificate:</label>
     <textarea id="leafCert" placeholder="Paste your leaf certificate here..."></textarea>
@@ -178,7 +178,7 @@
 
       // Send the JSON to the CT log
       try {
-        const response = await fetch("https://dodo.ct.comodo.com/ct/v1/add-chain", {
+        const response = await fetch("https://dumbo.ctlabs.sectigo.com/ct/v1/add-chain", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
